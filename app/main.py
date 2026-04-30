@@ -4,6 +4,16 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from app.spam import check_spam
 from pydantic import BaseModel
+import logging
+import logging
+# 1) 로그포맷: 시간+ 레벨+ 메시지
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | "
+        "%(filename)s:%(lineno)d (%(funcName)s) | "
+        "%(message)s"
+)
+logger = logging.getLogger("spamcheck")
 # FastAPI 기반 웹 앱 생성
 # /docs (Swagger UI)에 표기되는 이름
 app = FastAPI(title="SpamCheck Web")
@@ -27,7 +37,22 @@ class ClassifyRequest(BaseModel):
 @app.post("/classify")
 async def classify(payload: ClassifyRequest):
     text = payload.text
-    label, score = check_spam(text)
+    # (A) 요청 들어온 것 자체를 기록: 언제(로그시간) / 무엇(endpoint) / 어떤입력
+    logger.info(f"CALL /classify | text='{text}' | len={len(text)}")
+    try:
+        if text == "crash":
+            raise RuntimeError("의도적 장애 추가")
+        label, score = check_spam(text)
+        # (B) 정상 처리 결과도 짧게 기록
+        logger.info(f"OK    /classify | label={label} score={score}")
+    except Exception as e:
+        # (C) 디버깅 핵심: 에러 종류/메시지 + 스택트레이스(파일/라인 포함)
+        # logger.exception은 현재 예외의 traceback을 자동으로 찍어줍니다.
+        logger.exception(
+            f"FAIL /classify | test='{text}' | error={type(e).__name__}: {e}"
+        )
+        # (D) 사용자 응답은 심플하게
+        return {"label": "Internal Server Error", "score": -1}
     return {
         "label": label, "score": score
     }
