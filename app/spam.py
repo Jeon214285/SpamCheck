@@ -1,5 +1,6 @@
 # ./app/spam.py
-def check_spam(text: str) -> str:
+from app.model_loader import load_model
+def check_spam_rules(text: str) -> str:
     text = text.lower().strip()
     if text == "":
         return "ham", 0
@@ -16,3 +17,19 @@ def check_spam(text: str) -> str:
         if kw in text:
             hit += 1
     return "spam" if hit >= 2 else "ham", hit
+
+def check_spam_ml(text: str):
+    text = text.strip()
+    if text == "":
+        return "ham", 0.0
+    
+    model = load_model()
+
+    pred = model.predict([text])[0]
+    proba= model.predict_proba([text])[0]
+
+    classes = list(model.classes_)
+    pred_index= classes.index(pred)
+    score = float(proba[pred_index])
+    
+    return pred, score

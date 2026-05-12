@@ -2,11 +2,12 @@
 from fastapi import FastAPI, Request, Body
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from app.spam import check_spam
+from app.spam import check_spam_rules, check_spam_ml
 from pydantic import BaseModel
 from app.issue import *
 import logging
 import traceback
+from app.config import MODEL_MODE
 
 # 1) 로그포맷: 시간+ 레벨+ 메시지
 logging.basicConfig(
@@ -42,7 +43,11 @@ async def classify(payload: ClassifyRequest):
     # (A) 요청 들어온 것 자체를 기록: 언제(로그시간) / 무엇(endpoint) / 어떤입력
     logger.info(f"CALL /classify | text='{text}' | len={len(text)}")
     try:
-        label, score = check_spam(text)
+        # label, score = check_spam(text)
+        if MODEL_MODE == "ml":
+            label, score = check_spam_ml(text)
+        else:
+            label, score = check_spam_rules(text)
         # (B) 정상 처리 결과도 짧게 기록
         logger.info(f"OK    /classify | label={label} score={score}")
     except Exception as e:
