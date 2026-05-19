@@ -22,7 +22,8 @@ MODEL_PATH = os.path.join(ARTIFACT_DIR, MODEL_NAME)
 
 os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
-mlflow.set_tracking_uri("sqlite:///mlflow.db")
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI) 
+mlflow.set_registry_uri(MLFLOW_TRACKING_URI)
 mlflow.set_experiment("spam_classification-local")
 
 train_df = pd.read_csv(TRAIN_DATA_PATH)
