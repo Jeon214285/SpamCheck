@@ -10,7 +10,7 @@ on:
       - 'requirements.txt'
       - '.github/workflows/train.yml'
   workflow_dispatch:
-  
+
 jobs:
   train:
     runs-on: ubuntu-latest
@@ -29,6 +29,8 @@ jobs:
         run: |
           pytest -q
       - name: 모델 학습 실행
+        env:
+          MLFLOW_ARTIFACT_URI: "./mlruns"
         run: |
           python -m ml.train
       - name: 학습 결과 업로드
