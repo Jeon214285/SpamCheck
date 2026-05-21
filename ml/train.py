@@ -49,7 +49,9 @@ for model_name, model in models.items():
             ("classifier", model)
             ])
         
-        # 실험설정기록
+        # 실험 설정 기록
+        mlflow.log_param("model_type", model_name)
+        mlflow.log_param("vectorizer", "CountVectorizer")
         mlflow.log_param("train_data_path", TRAIN_DATA_PATH)
         mlflow.log_param("test_train_data_path", TEST_DATA_PATH)
         mlflow.log_param("train_row_count", len(train_df))

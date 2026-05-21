@@ -8,6 +8,35 @@ from app.issue import *
 import logging
 import traceback
 from app.config import MODEL_MODE
+import mlflow
+from app.config import MODEL_URI, MLFLOW_TRACKING_URI
+from mlflow.tracking import MlflowClient
+
+_model_info = None
+
+def get_model_info():
+  global _model_info
+
+  if _model_info is None:
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+
+    try:
+        info = mlflow.models.get_model_info(MODEL_URI)
+        run = MlflowClient().get_run(info.run_id)
+
+        _model_info= {
+            "run_id": info.run_id,
+            "model_type": run.data.params.get("model_type"),
+            "test_accuracy": run.data.metrics.get("test_accuracy"),
+        }
+    except Exception:
+        _model_info= {
+            "run_id": "unknown",
+            "model_type": None,
+            "test_accuracy": None,
+        }
+        
+  return _model_info
 
 # 1) 로그포맷: 시간+ 레벨+ 메시지
 logging.basicConfig(
@@ -74,9 +103,9 @@ async def classify(payload: ClassifyRequest):
         create_github_issue(title, body, logger)
 
         # (E) 사용자 응답은 심플하게
-        return {"label": "Internal Server Error", "score": -1}
+        return {"label": "Internal Server Error", "score": -1, "model_info": None}
     return {
-        "label": label, "score": score
+        "label": label, "score": score, "model_info": get_model_info()
     }
 # 실행은 운영 환경의 책임으로 남기기 위해 만들지 X
 # http://127.0.0.1:8000 접속
