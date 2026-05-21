@@ -2,7 +2,7 @@ import os
 
 MODEL_MODE = "ml" # "rules"
 # MLFLOW_TRACKING_URI = "sqlite:///mlflow.db"
-MLFLOW_TRACKING_URI = "https://skinning-outburst-storm.ngrok-free.dev/"
+MLFLOW_TRACKING_URI = "https://skinning-outburst-storm.ngrok-free.dev"
 MODEL_URI = "models:/spam-model@challenger"
 
 TRAIN_FILE_NAME = "train.csv"
